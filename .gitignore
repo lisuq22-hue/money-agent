@@ -1,0 +1,9 @@
+.env
+secrets.yaml
+__pycache__/
+*.pyc
+.venv/
+logs/*.log
+data/*.db
+.superpowers/
+.key
