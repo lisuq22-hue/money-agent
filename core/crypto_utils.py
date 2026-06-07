@@ -3,7 +3,7 @@ import os
 import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 _KEY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".key")
@@ -11,7 +11,7 @@ _KEY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".key")
 
 def _derive_key(password: str, salt: bytes) -> bytes:
     """从密码派生加密密钥"""
-    kdf = PBKDF2(
+    kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
         salt=salt,

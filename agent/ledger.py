@@ -118,13 +118,13 @@ class Ledger:
         split = self.get_profit_split()
 
         return (
-            f"📊 财务日报 ({summary['month']})\n"
-            f"═══════════════════════\n"
-            f"💰 本月收入: ${summary['total_income']:.2f}\n"
-            f"💸 本月支出: ${summary['total_expense']:.2f}\n"
-            f"📈 净利润:   ${summary['net_profit']:.2f}\n"
-            f"───────────────────────\n"
-            f"👤 你的分红:   ${split['your_share']:.2f}\n"
-            f"⛽ Token基金:  ${split['token_fund']:.2f}\n"
-            f"🎒 自由基金:   ${split['freedom_fund']:.2f}\n"
+            f"财务日报 ({summary['month']})\n"
+            f"=========================\n"
+            f"本月收入: ${summary['total_income']:.2f}\n"
+            f"本月支出: ${summary['total_expense']:.2f}\n"
+            f"净利润:   ${summary['net_profit']:.2f}\n"
+            f"-------------------------\n"
+            f"你的分红:   ${split['your_share']:.2f}\n"
+            f"Token基金:  ${split['token_fund']:.2f}\n"
+            f"自由基金:   ${split['freedom_fund']:.2f}\n"
         )

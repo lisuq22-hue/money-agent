@@ -29,11 +29,11 @@ class NotificationService:
         self._save(notifications)
 
         # 打印到控制台
-        emoji = {"info": "ℹ️", "warning": "⚠️", "error": "❌", "success": "✅"}.get(level, "")
+        emoji = {"info": "[i]", "warning": "[!]", "error": "[X]", "success": "[OK]"}.get(level, "")
         print(f"\n{emoji} [{level.upper()}] {title}")
         print(f"   {body}")
         if action_needed:
-            print(f"   🔔 需要你的操作！")
+            print(f"   >>> 需要你的操作！")
 
     def send_alert(self, title: str, body: str):
         """发送告警（需要用户关注）"""
