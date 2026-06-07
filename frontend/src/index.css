@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-nvidia: #76b900;
+  --color-nvidia-dark: #5a8f00;
+  --color-nvidia-light: #1ed44f;
+  --color-bg-primary: #0a0a0a;
+  --color-bg-card: #111111;
+  --color-bg-card-hover: #1a1a1a;
+  --color-border: #222222;
+  --color-text-secondary: #a0a0a0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #76b900; }
+.glow-green { box-shadow: 0 0 20px rgba(118,185,0,0.3), 0 0 60px rgba(118,185,0,0.1); }
+.gradient-text {
+  background: linear-gradient(135deg, #76b900, #1ed44f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
