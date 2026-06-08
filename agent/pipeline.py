@@ -221,7 +221,7 @@ class Pipeline:
         import subprocess
         try:
             result = subprocess.run(
-                ["python", "-m", "pytest", "tests/", "-q", "--tb=short"],
+                ["python3", "-m", "pytest", "tests/", "-q", "--tb=short"],
                 cwd=self.project_dir, capture_output=True, text=True, timeout=120
             )
             ok = result.returncode == 0
