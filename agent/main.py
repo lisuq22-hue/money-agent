@@ -10,6 +10,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="干跑模式")
     parser.add_argument("--once", action="store_true", help="只跑一次")
     parser.add_argument("--watchdog", action="store_true", help="启动Watchdog守护")
+    parser.add_argument("--loop", action="store_true", help="持续运行模式 — 不休眠，每5分钟循环一次")
+    parser.add_argument("--interval", type=int, default=300, help="循环间隔(秒)，默认300")
     args = parser.parse_args()
 
     project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,31 +102,53 @@ def main():
     )
 
     # === 11. 执行 ===
+    cycle_count = 0
+
+    def run_one_cycle():
+        nonlocal cycle_count
+        cycle_count += 1
+        print(f"\n{'='*50}")
+        print(f"第 {cycle_count} 轮循环")
+        print(f"{'='*50}")
+        result = pipeline.run(callbacks={})
+        print(f"[OK] 完成 {result['steps_completed']}/{len(pipeline.STEPS)} 步")
+        if result['errors']:
+            print(f"[!] {len(result['errors'])} 个错误:")
+            for err in result['errors'][:3]:
+                print(f"    {err[:100]}")
+        return result
+
     if args.dry_run:
         print("\n--- 干跑模式 ---")
         result = pipeline.run(dry_run=True)
         print(result["message"])
         print(f"流水线: {len(pipeline.STEPS)} 步就绪")
+    elif args.loop:
+        print(f"\n--- 24/7持续运行模式 (每{args.interval}秒一轮) ---")
+        if args.watchdog:
+            watchdog.start()
+            print("[OK] Watchdog 守护已启动")
+
+        try:
+            while True:
+                run_one_cycle()
+                print(f"\n{ledger.generate_report()}")
+                print(f"下一轮: {args.interval}秒后...")
+                time.sleep(args.interval)
+        except KeyboardInterrupt:
+            print("\n用户中断")
     else:
         print("\n--- 执行完整流水线 ---")
-        result = pipeline.run(callbacks={})
-        print(f"\n[OK] 完成 {result['steps_completed']}/{len(pipeline.STEPS)} 步")
-        if result['errors']:
-            print(f"[!] {len(result['errors'])} 个错误:")
-            for err in result['errors'][:5]:
-                print(f"    {err[:100]}")
+        run_one_cycle()
+        print(f"\n{ledger.generate_report()}")
 
-    # === 12. 报告 ===
-    print(f"\n{ledger.generate_report()}")
-
-    # === 13. 停止Watchdog ===
+    # === 12. 清理 ===
     if args.watchdog:
         watchdog.stop()
         print("[OK] Watchdog 已停止")
 
-    next_wake = time.time() + 28800
-    print(f"\n下次醒来: {time.strftime('%Y-%m-%d %H:%M', time.localtime(next_wake))}")
-    print("休眠中...")
+    if not args.loop:
+        print("运行结束")
 
 
 if __name__ == "__main__":
