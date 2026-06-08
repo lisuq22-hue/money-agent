@@ -7,3 +7,5 @@ logs/*.log
 data/*.db
 .superpowers/
 .key
+node_modules/
+frontend/dist/
