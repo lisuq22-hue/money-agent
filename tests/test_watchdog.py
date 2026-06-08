@@ -21,12 +21,18 @@ class TestWatchdog:
         """检测宪法文件被修改时应报警"""
         const_path = tmp_path / "constitution.md"
         const_path.write_text("# Agent 宪法\n\n安全准则", encoding="utf-8")
+        backup = tmp_path / "backup.md"
+        backup.write_text("# original", encoding="utf-8")
 
         self.watchdog.constitution_path = str(const_path)
+        self.watchdog._restore_source = str(backup)
         self.watchdog._last_constitution_hash = "different_hash"
 
-        issues = self.watchdog._check_constitution()
-        assert len(issues) > 0
+        # 触发宪法守护 — 应该检测到修改并恢复
+        self.watchdog._guard_constitution()
+        # 宪法应该被恢复到备份版本
+        content = const_path.read_text(encoding="utf-8")
+        assert "original" in content
 
     def test_watchdog_checks_process_alive(self):
         """应能检查目标进程是否存活"""

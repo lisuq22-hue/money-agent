@@ -1,0 +1,67 @@
+[
+  {
+    "time": 1780912594.1206043,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780912597.4756215,
+    "level": "action",
+    "message": "Killed heavy process: pid=24368, mem=156MB"
+  },
+  {
+    "time": 1780912597.4986002,
+    "level": "action",
+    "message": "Killed heavy process: pid=22376, mem=13MB"
+  },
+  {
+    "time": 1780912597.5223424,
+    "level": "action",
+    "message": "Killed heavy process: pid=68280, mem=0MB"
+  },
+  {
+    "time": 1780912597.6339738,
+    "level": "action",
+    "message": "Cleaned 6 files in emergency"
+  },
+  {
+    "time": 1780912597.7555702,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780912597.776327,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780912602.330799,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780912644.6568854,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780912647.985203,
+    "level": "action",
+    "message": "Cleaned 5 files in emergency"
+  },
+  {
+    "time": 1780912648.111449,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780912648.1645179,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780912651.565783,
+    "level": "info",
+    "message": "Watchdog stopped"
+  }
+]

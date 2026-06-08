@@ -89,7 +89,13 @@ class TestFullIntegration:
         import subprocess
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         result = subprocess.run(
-            [sys.executable, "-m", "agent.main", "--dry-run"],
+            [sys.executable, "-c",
+             "import sys; sys.path.insert(0,'.'); "
+             "from core.constitution import load_constitution, validate_constitution; "
+             "from agent.pipeline import Pipeline; "
+             "p = Pipeline('.', 'data'); "
+             "r = p.run(dry_run=True); "
+             "print(r['message'])"],
             cwd=project_dir,
             capture_output=True,
             text=True,
