@@ -58,7 +58,7 @@ class Brain:
                 },
             )
             if response.status_code != 200:
-                raise RuntimeError(f"API返回 {response.status_code}: {response.text[:200]}")
+                raise RuntimeError(f"API {response.status_code}: url={url} resp={response.text[:200]}")
             data = response.json()
             return data["choices"][0]["message"]["content"]
 
