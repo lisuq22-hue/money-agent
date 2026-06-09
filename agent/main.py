@@ -191,32 +191,107 @@ def main():
                 print(f"⏱️  决定休息: {rest}秒")
                 print(f"{'─'*40}")
 
-                # 执行行动
-                action_map = {
-                    "self_check": lambda: pipeline._step_01({}),
-                    "evolve_code": lambda: (pipeline._step_07({}) and pipeline._step_08({}) and pipeline._step_09({})),
-                    "explore_channels": lambda: pipeline._step_12({}),
-                    "engage_community": lambda: (pipeline._step_04({}) and pipeline._step_11({})),
-                    "analyze_finance": lambda: (pipeline._step_05({}) and pipeline._step_15({})),
-                    "learn": lambda: pipeline._step_14({}),
-                    "register_platform": lambda: pipeline._step_13({}),
-                    "cleanup": lambda: (sys_ops.auto_cleanup() or True),
-                    "rest": lambda: True,
-                }
-
-                handler = action_map.get(action)
+                # === 执行真实行动 ===
                 result_msg = ""
-                if handler:
-                    try:
-                        ok = handler()
-                        result_msg = "完成" if ok else "失败"
-                        memory.remember(f"{action}: {reason}", importance=6 if action != "rest" else 1)
-                    except Exception as e:
-                        result_msg = f"出错: {e}"
-                        memory.remember(f"{action} 失败: {e}", importance=8)
-                else:
-                    pipeline._step_01({})
-                    result_msg = "未知行动，已自检"
+                real_result = None
+
+                try:
+                    if action == "explore_channels":
+                        real_result = brain.do_explore_channels()
+                        if real_result.get("success"):
+                            result_msg = f"发现平台信息: {real_result.get('platforms_found', '')[:200]}..."
+                            # 保存到知识库
+                            learner.save_to_knowledge_base(
+                                f"渠道探索 {time.strftime('%m-%d %H:%M')}",
+                                real_result.get('platforms_found', ''),
+                                tags=["exploration", "channels"]
+                            )
+                        else:
+                            result_msg = f"探索失败: {real_result.get('error', '')}"
+
+                    elif action == "self_check":
+                        real_result = brain.do_self_check(
+                            resources={
+                                "cpu": health["cpu_percent"],
+                                "memory_mb": health["memory_mb"],
+                                "disk_gb": health["disk_gb"],
+                            },
+                            network={
+                                "GitHub": net.check_target("GitHub API"),
+                                "Google": net.check_target("Google"),
+                            }
+                        )
+                        result_msg = f"{'健康' if real_result.get('healthy') else '有问题: ' + str(real_result.get('issues', []))}"
+
+                    elif action == "evolve_code":
+                        import subprocess
+                        test_result = subprocess.run(
+                            ["python3", "-m", "pytest", "tests/", "-q", "--tb=short"],
+                            cwd=project_dir, capture_output=True, text=True, timeout=120
+                        )
+                        real_result = brain.do_evolve_code(
+                            test_pass=(test_result.returncode == 0),
+                            test_output=test_result.stdout[-1500:] + test_result.stderr[-500:],
+                        )
+                        result_msg = f"测试{'通过' if test_result.returncode == 0 else '失败'} — {real_result.get('message', real_result.get('analysis', ''))[:150]}"
+
+                    elif action == "learn":
+                        real_result = brain.do_learn(
+                            recent_actions=brain.get_action_history(),
+                            ledger_data=ledger.get_monthly_summary(),
+                        )
+                        result_msg = f"经验总结: {real_result.get('summary', '')[:200]}"
+                        if real_result.get("knowledge_written"):
+                            learner.save_to_knowledge_base(
+                                f"经验总结 {time.strftime('%m-%d %H:%M')}",
+                                real_result.get('summary', ''),
+                                tags=["learning", "experience"]
+                            )
+
+                    elif action == "engage_community":
+                        # 真实调用GitHub API
+                        github_token = config.get("github_token", "")
+                        if github_token:
+                            from utils.github_api import GitHubAPI
+                            api = GitHubAPI(github_token)
+                            try:
+                                user = api.get_user()
+                                result_msg = f"GitHub连接成功 (@{user.get('login', '?')})"
+                            except Exception as e:
+                                result_msg = f"GitHub连接失败: {e}"
+                        else:
+                            result_msg = "未配置GitHub Token"
+
+                    elif action == "analyze_finance":
+                        ledger_data = {"months": {}}
+                        ledger_path = os.path.join(data_dir, "ledger.json")
+                        if os.path.exists(ledger_path):
+                            import json as j
+                            with open(ledger_path, 'r') as f:
+                                ledger_data = j.load(f)
+                        insights = learner.learn_from_ledger(ledger_data)
+                        result_msg = f"趋势: {insights.get('income_trend', 'N/A')} — {'; '.join(insights.get('suggestions', []))}"
+
+                    elif action == "cleanup":
+                        report = sys_ops.auto_cleanup()
+                        result_msg = f"释放 {report.get('freed_gb', 0):.2f}GB"
+
+                    elif action == "register_platform":
+                        result_msg = "平台注册需要邮箱验证码接收能力，当前已配置QQ邮箱"
+
+                    elif action == "rest":
+                        result_msg = "休息中"
+
+                    else:
+                        pipeline._step_01({})
+                        result_msg = "未知行动，已自检"
+
+                    brain.record_result(action, result_msg, "失败" not in result_msg and "错误" not in result_msg)
+                    memory.remember(f"{action}: {result_msg[:150]}", importance=6 if action != "rest" else 1)
+
+                except Exception as e:
+                    result_msg = f"异常: {e}"
+                    memory.remember(f"{action} 异常: {e}", importance=9)
 
                 # 只在有收入变化时显示财务
                 if fin["total_income"] > 0 or fin["total_expense"] > 0:

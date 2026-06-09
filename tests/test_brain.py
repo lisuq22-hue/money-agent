@@ -25,7 +25,7 @@ class TestBrain:
         result = self.brain._fallback_think({})
         assert result["action"] != "self_check"
 
-    def test_build_prompt(self):
+    def test_build_decision_prompt(self):
         ctx = {
             "resources": {"cpu": 25, "memory_mb": 500, "disk_gb": 5},
             "network": {"github_reachable": True, "google_reachable": False},
@@ -35,18 +35,18 @@ class TestBrain:
             "knowledge_count": 3,
             "current_time": "2026-06-09",
         }
-        prompt = self.brain._build_prompt(ctx)
+        prompt = self.brain._build_decision_prompt(ctx)
         assert "CPU" in prompt
         assert "50" in prompt
 
     def test_parse_valid_json(self):
-        result = self.brain._parse_response(
+        result = self.brain._parse_json(
             '{"action": "self_check", "reason": "t", "urgency": 5, "rest_seconds": 300}'
         )
         assert result["action"] == "self_check"
 
     def test_parse_malformed(self):
-        result = self.brain._parse_response("not json")
+        result = self.brain._parse_json("not json")
         assert "action" in result
 
     def test_action_history(self):
