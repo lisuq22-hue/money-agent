@@ -153,5 +153,30 @@
     "time": 1780971182.9756515,
     "level": "info",
     "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780972024.0229323,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780972027.527814,
+    "level": "action",
+    "message": "Cleaned 5 files in emergency"
+  },
+  {
+    "time": 1780972027.660171,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780972027.7327049,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780972031.1846938,
+    "level": "info",
+    "message": "Watchdog stopped"
   }
 ]

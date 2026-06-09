@@ -3,12 +3,8 @@ import json
 import re
 import time
 import os
-
-try:
-    import httpx
-    HAS_HTTPX = True
-except ImportError:
-    HAS_HTTPX = False
+import urllib.request
+import urllib.error
 
 
 AVAILABLE_ACTIONS = [
@@ -35,32 +31,34 @@ class Brain:
 
     def _call_ai(self, system_prompt: str, user_prompt: str) -> str:
         """调用DeepSeek API (OpenAI兼容格式)"""
-        if not HAS_HTTPX or not self.api_key:
-            raise RuntimeError("httpx或API key不可用")
+        if not self.api_key:
+            raise RuntimeError("API key不可用")
 
         url = f"{self.base_url}/chat/completions"
-        print(f"  [Brain] 调用API: {url}")
-        with httpx.Client(timeout=30) as client:
-            response = client.post(
-                url,
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": self.model,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    "max_tokens": 300,
-                    "temperature": 0.7,
-                },
-            )
-            if response.status_code != 200:
-                raise RuntimeError(f"API {response.status_code}: url={url} resp={response.text[:200]}")
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
+        body = json.dumps({
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "max_tokens": 300,
+            "temperature": 0.7,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(url, data=body, headers={
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        })
+
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return data["choices"][0]["message"]["content"]
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8")[:200] if e.fp else ""
+            raise RuntimeError(f"API {e.code}: {error_body}")
+        except Exception as e:
+            raise RuntimeError(f"API调用异常: {e}")
 
     def think(self, context: dict) -> dict:
         """
@@ -71,7 +69,7 @@ class Brain:
         prompt = self._build_prompt(context)
 
         try:
-            if HAS_HTTPX and self.api_key:
+            if self.api_key:
                 ai_response = self._call_ai(self._system_prompt(), prompt)
                 result = self._parse_response(ai_response)
             else:
