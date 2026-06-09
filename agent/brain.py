@@ -2,13 +2,13 @@
 import json
 import re
 import time
-from datetime import datetime
+import os
 
 try:
-    from anthropic import Anthropic
-    HAS_ANTHROPIC = True
+    import httpx
+    HAS_HTTPX = True
 except ImportError:
-    HAS_ANTHROPIC = False
+    HAS_HTTPX = False
 
 
 AVAILABLE_ACTIONS = [
@@ -29,15 +29,36 @@ class Brain:
 
     def __init__(self, api_key: str, base_url: str = None, model: str = "deepseek-chat"):
         self.api_key = api_key
-        self.base_url = base_url or "https://api.deepseek.com/v1"
+        self.base_url = (base_url or "https://api.deepseek.com/v1").rstrip("/")
         self.model = model
-        self._client = None
         self._action_history = []
 
-    def _get_client(self):
-        if self._client is None and HAS_ANTHROPIC:
-            self._client = Anthropic(api_key=self.api_key, base_url=self.base_url)
-        return self._client
+    def _call_ai(self, system_prompt: str, user_prompt: str) -> str:
+        """调用DeepSeek API (OpenAI兼容格式)"""
+        if not HAS_HTTPX or not self.api_key:
+            raise RuntimeError("httpx或API key不可用")
+
+        with httpx.Client(timeout=30) as client:
+            response = client.post(
+                f"{self.base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": self.model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    "max_tokens": 300,
+                    "temperature": 0.7,
+                },
+            )
+            if response.status_code != 200:
+                raise RuntimeError(f"API返回 {response.status_code}: {response.text[:200]}")
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
 
     def think(self, context: dict) -> dict:
         """
@@ -48,15 +69,9 @@ class Brain:
         prompt = self._build_prompt(context)
 
         try:
-            client = self._get_client()
-            if client:
-                response = client.messages.create(
-                    model=self.model,
-                    max_tokens=300,
-                    system=self._system_prompt(),
-                    messages=[{"role": "user", "content": prompt}],
-                )
-                result = self._parse_response(response.content[0].text)
+            if HAS_HTTPX and self.api_key:
+                ai_response = self._call_ai(self._system_prompt(), prompt)
+                result = self._parse_response(ai_response)
             else:
                 result = self._fallback_think(context)
         except Exception as e:
