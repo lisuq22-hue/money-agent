@@ -286,11 +286,41 @@ def main():
                             try:
                                 api = GitHubAPI(github_token)
                                 user = api.get_user()
-                                result_msg = f"GitHub连接成功(@{user.get('login','?')})，可查看趋势"
+                                result_msg = f"GitHub连接成功(@{user.get('login','?')})"
                             except Exception as e:
                                 result_msg = f"GitHub访问失败: {e}"
                         else:
                             result_msg = "GitHub Token未配置"
+
+                    elif action == "create_github_repo":
+                        # AI想创建GitHub仓库来赚钱
+                        github_token = config.get("github_token", "")
+                        if github_token:
+                            from utils.github_api import GitHubAPI
+                            try:
+                                api = GitHubAPI(github_token)
+                                repo_name = f"ai-earn-{int(time.time()) % 100000}"
+                                api.create_repo(repo_name, "AI自主创建的赚钱项目", private=False)
+                                result_msg = f"已创建仓库: github.com/lisuq22-hue/{repo_name}"
+                            except Exception as e:
+                                result_msg = f"创建仓库失败: {e}"
+                        else:
+                            result_msg = "GitHub Token未配置，无法创建仓库"
+
+                    elif action == "scan_github":
+                        github_token = config.get("github_token", "")
+                        if github_token:
+                            from utils.github_api import GitHubAPI
+                            try:
+                                api = GitHubAPI(github_token)
+                                user = api.get_user()
+                                repos = api._request("GET", f"/users/{user.get('login')}/repos?per_page=5")
+                                repo_list = [r.get('name','') for r in (repos or [])]
+                                result_msg = f"GitHub仓库: {repo_list}" if repo_list else "无仓库"
+                            except Exception as e:
+                                result_msg = f"扫描失败: {e}"
+                        else:
+                            result_msg = "未配置GitHub Token"
 
                     elif action == "rest":
                         result_msg = "休息中"
