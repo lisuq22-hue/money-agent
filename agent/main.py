@@ -168,13 +168,27 @@ def main():
                 decision = brain.think(context)
                 action = decision.get("action", "self_check")
                 reason = decision.get("reason", "")
-                rest = max(60, min(7200, decision.get("rest_seconds", 300)))
+                rest = decision.get("rest_seconds", 300)  # AI自己决定，不设下限
                 urgency = decision.get("urgency", 5)
 
-                print(f"\n{'='*50}")
-                print(f"🧠 AI决策 [{urgency}/10]: {action}")
-                print(f"   {reason}")
-                print(f"{'='*50}")
+                # 行动描述映射
+                action_desc = {
+                    "self_check": "自检系统状态",
+                    "evolve_code": "自我代码进化",
+                    "explore_channels": "探索新赚钱渠道",
+                    "engage_community": "与社区互动",
+                    "analyze_finance": "分析财务状况",
+                    "learn": "沉淀经验知识",
+                    "register_platform": "注册新平台账号",
+                    "cleanup": "清理服务器资源",
+                    "rest": "休息",
+                }
+
+                print(f"\n{'─'*40}")
+                print(f"🧠 思考: {reason}")
+                print(f"🤖 行动: {action_desc.get(action, action)}")
+                print(f"⏱️  决定休息: {rest}秒")
+                print(f"{'─'*40}")
 
                 # 执行行动
                 action_map = {
@@ -190,21 +204,23 @@ def main():
                 }
 
                 handler = action_map.get(action)
+                result_msg = ""
                 if handler:
                     try:
                         ok = handler()
-                        print(f"[{'OK' if ok else 'FAIL'}] {action} 完成")
+                        result_msg = "完成" if ok else "失败"
                         memory.remember(f"{action}: {reason}", importance=6 if action != "rest" else 1)
                     except Exception as e:
-                        print(f"[FAIL] {action}: {e}")
+                        result_msg = f"出错: {e}"
                         memory.remember(f"{action} 失败: {e}", importance=8)
                 else:
-                    print(f"[?] 未知行动: {action}，默认执行自检")
                     pipeline._step_01({})
+                    result_msg = "未知行动，已自检"
 
-                # 记账
-                print(f"\n{ledger.generate_report()}")
-                print(f"⏰ {rest}秒后再次思考...")
+                # 只在有收入变化时显示财务
+                if fin["total_income"] > 0 or fin["total_expense"] > 0:
+                    print(f"\n{ledger.generate_report()}")
+                print(f"💤 休息 {rest}秒...")
                 time.sleep(rest)
 
         except KeyboardInterrupt:
