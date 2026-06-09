@@ -279,12 +279,36 @@ def main():
                     elif action == "register_platform":
                         result_msg = "平台注册需要邮箱验证码接收能力，当前已配置QQ邮箱"
 
+                    elif action == "check_github_trending":
+                        github_token = config.get("github_token", "")
+                        if github_token:
+                            from utils.github_api import GitHubAPI
+                            try:
+                                api = GitHubAPI(github_token)
+                                user = api.get_user()
+                                result_msg = f"GitHub连接成功(@{user.get('login','?')})，可查看趋势"
+                            except Exception as e:
+                                result_msg = f"GitHub访问失败: {e}"
+                        else:
+                            result_msg = "GitHub Token未配置"
+
                     elif action == "rest":
                         result_msg = "休息中"
 
                     else:
-                        pipeline._step_01({})
-                        result_msg = "未知行动，已自检"
+                        # AI发明了新行动 — 用AI自身来执行它
+                        print(f"  ⚡ AI发明新行动: {action}")
+                        try:
+                            creative_result = brain.call_ai(
+                                "你是行动执行器。根据你的知识完成这个自定义行动，返回具体可验证的结果。",
+                                f"行动: {action}\n理由: {reason}",
+                                max_tokens=500,
+                            )
+                            result_msg = f"新行动结果: {creative_result[:200]}"
+                            learner.save_to_knowledge_base(f"新行动:{action}", creative_result, tags=["creative"])
+                        except Exception as e:
+                            pipeline._step_01({})
+                            result_msg = f"新行动失败，已自检: {e}"
 
                     brain.record_result(action, result_msg, "失败" not in result_msg and "错误" not in result_msg)
                     memory.remember(f"{action}: {result_msg[:150]}", importance=6 if action != "rest" else 1)
