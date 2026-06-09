@@ -168,7 +168,8 @@ def main():
                 decision = brain.think(context)
                 action = decision.get("action", "self_check")
                 reason = decision.get("reason", "")
-                rest = decision.get("rest_seconds", 300)  # AI自己决定，不设下限
+                rest = decision.get("rest_seconds", 300)
+                rest = max(30, min(7200, rest))  # 最少30秒防疯狂，最长2小时
                 urgency = decision.get("urgency", 5)
 
                 # 行动描述映射

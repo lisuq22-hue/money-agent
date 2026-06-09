@@ -119,7 +119,7 @@ class Brain:
 - 赚钱是核心使命
 
 只返回JSON（不要其他内容）：
-{{"action": "行动名", "reason": "简短理由", "urgency": 1-10, "rest_seconds": 建议休息秒数(60~7200)}}"""
+{{"action": "行动名", "reason": "简短理由", "urgency": 1-10, "rest_seconds": 休息秒数}}"""
 
     def _system_prompt(self) -> str:
         return """你是赚钱Agent的决策大脑。规则：
