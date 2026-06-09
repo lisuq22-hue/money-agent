@@ -124,17 +124,89 @@ def main():
         print(result["message"])
         print(f"流水线: {len(pipeline.STEPS)} 步就绪")
     elif args.loop:
-        print(f"\n--- 24/7持续运行模式 (每{args.interval}秒一轮) ---")
+        print(f"\n--- AI大脑自主决策模式 ---")
         if args.watchdog:
+            watchdog.agent_pid = os.getpid()
             watchdog.start()
             print("[OK] Watchdog 守护已启动")
 
+        # 创建AI大脑
+        from agent.brain import Brain
+        api_key = config.get("anthropic_api_key", "")
+        base_url = os.environ.get("ANTHROPIC_BASE_URL", config.get("anthropic_base_url", ""))
+        brain = Brain(api_key=api_key, base_url=base_url)
+
         try:
             while True:
-                run_one_cycle()
+                # 收集当前状态
+                health = sys_ops.get_health_report()
+                net_status = net.get_network_status()
+                fin = ledger.get_monthly_summary()
+
+                context = {
+                    "resources": {
+                        "cpu": health["cpu_percent"],
+                        "memory_mb": health["memory_mb"],
+                        "disk_gb": health["disk_gb"],
+                    },
+                    "network": {
+                        "github_reachable": net.check_target("GitHub API"),
+                        "google_reachable": net.check_target("Google"),
+                    },
+                    "finance": {
+                        "income": fin["total_income"],
+                        "expense": fin["total_expense"],
+                        "profit": fin["net_profit"],
+                    },
+                    "recent_actions": brain.get_action_history()[-5:],
+                    "memory_summary": memory.summarize_session() if memory else "",
+                    "knowledge_count": learner.get_knowledge_count() if learner else 0,
+                    "current_time": time.strftime("%m-%d %H:%M"),
+                }
+
+                # AI思考
+                decision = brain.think(context)
+                action = decision.get("action", "self_check")
+                reason = decision.get("reason", "")
+                rest = max(60, min(7200, decision.get("rest_seconds", 300)))
+                urgency = decision.get("urgency", 5)
+
+                print(f"\n{'='*50}")
+                print(f"🧠 AI决策 [{urgency}/10]: {action}")
+                print(f"   {reason}")
+                print(f"{'='*50}")
+
+                # 执行行动
+                action_map = {
+                    "self_check": lambda: pipeline._step_01({}),
+                    "evolve_code": lambda: (pipeline._step_07({}) and pipeline._step_08({}) and pipeline._step_09({})),
+                    "explore_channels": lambda: pipeline._step_12({}),
+                    "engage_community": lambda: (pipeline._step_04({}) and pipeline._step_11({})),
+                    "analyze_finance": lambda: (pipeline._step_05({}) and pipeline._step_15({})),
+                    "learn": lambda: pipeline._step_14({}),
+                    "register_platform": lambda: pipeline._step_13({}),
+                    "cleanup": lambda: (sys_ops.auto_cleanup() or True),
+                    "rest": lambda: True,
+                }
+
+                handler = action_map.get(action)
+                if handler:
+                    try:
+                        ok = handler()
+                        print(f"[{'OK' if ok else 'FAIL'}] {action} 完成")
+                        memory.remember(f"{action}: {reason}", importance=6 if action != "rest" else 1)
+                    except Exception as e:
+                        print(f"[FAIL] {action}: {e}")
+                        memory.remember(f"{action} 失败: {e}", importance=8)
+                else:
+                    print(f"[?] 未知行动: {action}，默认执行自检")
+                    pipeline._step_01({})
+
+                # 记账
                 print(f"\n{ledger.generate_report()}")
-                print(f"下一轮: {args.interval}秒后...")
-                time.sleep(args.interval)
+                print(f"⏰ {rest}秒后再次思考...")
+                time.sleep(rest)
+
         except KeyboardInterrupt:
             print("\n用户中断")
     else:

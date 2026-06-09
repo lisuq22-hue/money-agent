@@ -63,5 +63,70 @@
     "time": 1780912651.565783,
     "level": "info",
     "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780912693.9679613,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780912697.2561357,
+    "level": "action",
+    "message": "Cleaned 5 files in emergency"
+  },
+  {
+    "time": 1780912697.3817296,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780912697.4117424,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780912700.9075947,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780912710.447135,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780912713.8548408,
+    "level": "action",
+    "message": "Cleaned 2 files in emergency"
+  },
+  {
+    "time": 1780912714.3783984,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780970840.125796,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780970842.8591413,
+    "level": "action",
+    "message": "Cleaned 5 files in emergency"
+  },
+  {
+    "time": 1780970842.9781752,
+    "level": "info",
+    "message": "Watchdog stopped"
+  },
+  {
+    "time": 1780970843.0357754,
+    "level": "info",
+    "message": "Watchdog started"
+  },
+  {
+    "time": 1780970845.4437473,
+    "level": "info",
+    "message": "Watchdog stopped"
   }
 ]
