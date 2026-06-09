@@ -38,9 +38,11 @@ class Brain:
         if not HAS_HTTPX or not self.api_key:
             raise RuntimeError("httpx或API key不可用")
 
+        url = f"{self.base_url}/chat/completions"
+        print(f"  [Brain] 调用API: {url}")
         with httpx.Client(timeout=30) as client:
             response = client.post(
-                f"{self.base_url}/chat/completions",
+                url,
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json",
